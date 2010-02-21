@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<display-name>WebFTP</display-name>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+	</welcome-file-list>
+
+	<servlet>
+		<servlet-name>webFTP</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<description>
+		</description>
+		<display-name>MimeImage</display-name>
+		<servlet-name>MimeImage</servlet-name>
+		<servlet-class>
+		de.zeeman.webftp.servlet.MimeImage</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>webFTP</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MimeImage</servlet-name>
+		<url-pattern>/static/MimeImage</url-pattern>
+	</servlet-mapping>
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<listener>
+	    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+	</listener>
+
+	<filter>
+		<filter-name>Spring Security Filter Chain Proxy</filter-name>
+		<filter-class>org.springframework.security.util.FilterToBeanProxy</filter-class>
+		<init-param>
+			<param-name>targetClass</param-name>
+			<param-value>org.springframework.security.util.FilterChainProxy</param-value>
+		</init-param>
+	</filter>
+ 
+	<filter-mapping>
+		<filter-name>Spring Security Filter Chain Proxy</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+ 
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<!--
+			projectstatus-servlet.xml is already there by the servletdispatcher
+			itself
+		-->
+		<param-value>
+			/WEB-INF/webFTP-service.xml
+			/WEB-INF/webFTP-data.xml
+<!-- 		/WEB-INF/webFTP-security.xml -->
+			/WEB-INF/webFTP-security-mock.xml
+		</param-value>
+	</context-param>
+</web-app>

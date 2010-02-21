@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost/webftp" />
+		<property name="username" value="root" />
+		<property name="password" value="xxxxxxxx" />
+		<property name="initialSize" value="5" />
+		<property name="maxActive" value="150" />
+	</bean>
+	
+	<!-- JDBC begin -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.simple.SimpleJdbcTemplate">
+		<constructor-arg index="0" ref="dataSource" />
+	</bean>
+	
+	<bean id="UserDAO" class="de.zeeman.webftp.dao.impl.jdbc.UserDAOJDBCImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
+
+	<bean id="SharedFileDAO" class="de.zeeman.webftp.dao.impl.jdbc.SharedFileDAOJDBCImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
+	
+	<bean id="CompanyDAO" class="de.zeeman.webftp.dao.impl.jdbc.CompanyDAOJDBCImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
+	
+	<bean id="UploadedFileDAO" class="de.zeeman.webftp.dao.impl.jdbc.UploadedFileDAOJDBCImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
+	<!-- JDBC end -->
+	
+	<!-- Mock start -->
+	
+	<!-- Mock end -->
+	
+</beans>

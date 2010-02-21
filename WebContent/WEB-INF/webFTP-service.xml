@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="AdministrationService" class="de.zeeman.webftp.business.impl.AdministrationServiceImpl">
+		<property name="userDAO" ref="UserDAO" />
+		<property name="companyDAO" ref="CompanyDAO" />
+	</bean>
+	
+	<bean id="FileService" class="de.zeeman.webftp.business.impl.FileServiceImpl">
+		<property name="sharedFileDAO" ref="SharedFileDAO" />
+		<property name="uploadedFileDAO" ref="UploadedFileDAO" />
+		<property name="userDAO" ref="UserDAO" />
+		<property name="companyDAO" ref="CompanyDAO" />
+	</bean>
+	
+	<bean id="WatcherDaemon" class="de.zeeman.webftp.business.impl.WatcherDaemonImpl">
+    	<property name="sharedFileDAO" ref="SharedFileDAO" />
+		<property name="companyDAO" ref="CompanyDAO" />
+		<property name="fileService" ref="FileService" />
+	</bean>
+
+	<bean id="ScheduledTask" class="org.springframework.scheduling.timer.ScheduledTimerTask">
+	    <!-- wait 10 seconds before starting repeated execution -->
+	    <property name="delay" value="10000" />
+	    <!-- run every 60 seconds -->
+	    <property name="period" value="60000" />
+	    <property name="timerTask" ref="WatcherDaemon" />
+	</bean>
+</beans>

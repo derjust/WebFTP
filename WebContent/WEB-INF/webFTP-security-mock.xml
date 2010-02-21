@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="filterChainProxy" class="org.springframework.security.util.FilterChainProxy">
+		<property name="filterInvocationDefinitionSource">
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/**=httpSessionIntegrationFilter,authenticationProcessingFilter,anonymousProcessingFilter,exceptionTranslationFilter,filterSecurityInterceptor
+			</value>
+		</property>
+	</bean>
+
+	<bean id="httpSessionIntegrationFilter"
+		class="org.springframework.security.context.HttpSessionContextIntegrationFilter" />
+ 
+	<bean id="authenticationProcessingFilter"
+		class="org.springframework.security.ui.webapp.AuthenticationProcessingFilter">
+		<property name="filterProcessesUrl" value="/j_acegi_security_check" />
+		<property name="authenticationFailureUrl" value="/login.htm?login_error=1" />
+		<property name="defaultTargetUrl" value="/" />
+		<property name="authenticationManager" ref="authenticationManager" />
+	</bean>
+
+	<bean id="authenticationManager" class="org.springframework.security.providers.ProviderManager">
+		<property name="providers">
+			<list>
+				<ref bean="daoMemoryAuthenticationProvider" />
+				<ref bean="anonymousAuthenticationProvider" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="authenticationMemoryDao" class="org.springframework.security.userdetails.memory.InMemoryDaoImpl">
+		<property name="userMap">
+			<value>
+				user1=user1,disabled,ROLE_USER
+				user2=user2,ROLE_USER
+				admin=admin,ROLE_ADMIN,ROLE_USER
+			</value>
+		</property>
+	</bean>
+
+	<bean id="daoMemoryAuthenticationProvider" class="org.springframework.security.providers.dao.DaoAuthenticationProvider">
+		<property name="userDetailsService" ref="authenticationMemoryDao" />
+	</bean>
+	
+	<bean id="anonymousProcessingFilter" class="org.springframework.security.providers.anonymous.AnonymousProcessingFilter">
+		<property name="key" value="foobar"/>
+		<property name="userAttribute" value="anonymousUser,ROLE_ANONYMOUS"/>
+	</bean>
+
+	<bean id="anonymousAuthenticationProvider" class="org.springframework.security.providers.anonymous.AnonymousAuthenticationProvider">
+		<property name="key" value="foobar"/>
+	</bean>
+	
+	<bean id="exceptionTranslationFilter" class="org.springframework.security.ui.ExceptionTranslationFilter">
+		<property name="authenticationEntryPoint" ref="authenticationEntryPoint" />
+		<property name="accessDeniedHandler" ref="accessDeniedHandler" />
+	</bean>
+
+	<bean id="authenticationEntryPoint"
+		class="org.springframework.security.ui.webapp.AuthenticationProcessingFilterEntryPoint">
+		<property name="loginFormUrl" value="/login.htm" />
+		<property name="forceHttps" value="false" />
+	</bean>
+
+	<bean id="accessDeniedHandler" class="org.springframework.security.ui.AccessDeniedHandlerImpl">
+		<property name="errorPage" value="/error.htm" />
+	</bean>
+
+
+	<bean id="accessDecisionManager" class="org.springframework.security.vote.UnanimousBased">
+		<property name="decisionVoters">
+			<list>
+				<ref bean="roleVoter"/>
+			</list>
+		</property>
+		<!--
+			<property name="allowIfAllAbstain" value="true" />
+		-->
+	</bean>
+	
+	<bean id="roleVoter" class="org.springframework.security.vote.RoleVoter">
+		<property name="rolePrefix" value="ROLE_" />
+	</bean>
+
+	<bean id="filterSecurityInterceptor" class="org.springframework.security.intercept.web.FilterSecurityInterceptor">
+		<property name="authenticationManager" ref="authenticationManager" />
+		<property name="accessDecisionManager" ref="accessDecisionManager" />
+		<property name="objectDefinitionSource">
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/edituser.htm=ROLE_ADMIN
+				/editcompany.htm=ROLE_ADMIN
+				/editoverview.htm=ROLE_ADMIN
+				/login.htm=ROLE_ANONYMOUS,ROLE_USER
+				/error.htm=ROLE_ANONYMOUS,ROLE_USER
+				/static/**=ROLE_ANONYMOUS,ROLE_USER
+				/listfiles.*=ROLE_USER
+				<!-- 
+				/**=ROLE_USER
+				 -->
+			</value>
+		</property>
+	</bean>
+</beans>
