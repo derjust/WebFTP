@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="filterChainProxy" class="org.springframework.security.util.FilterChainProxy">
+		<property name="filterInvocationDefinitionSource">
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/**=httpSessionIntegrationFilter,authenticationProcessingFilter,exceptionTranslationFilter,filterSecurityInterceptor
+			</value>
+		</property>
+	</bean>
+
+	<!--
+		This filter’s main job is to try to remember an authenticated user
+		between requests
+	-->
+	<bean id="httpSessionIntegrationFilter"
+		class="org.springframework.security.context.HttpSessionContextIntegrationFilter" />
+
+	<bean id="authenticationEntryPoint"
+		class="org.springframework.security.ui.webapp.AuthenticationProcessingFilterEntryPoint">
+		<property name="loginFormUrl" value="/login.htm" />
+		<property name="forceHttps" value="true" />
+	</bean>
+ 
+	<bean id="authenticationProcessingFilter"
+		class="org.springframework.security.ui.webapp.AuthenticationProcessingFilter">
+		<property name="filterProcessesUrl" value="/j_acegi_security_check" />
+		<property name="authenticationFailureUrl" value="/login.htm?login_error=1" />
+		<property name="defaultTargetUrl" value="/" />
+		<property name="authenticationManager" ref="authenticationManager" />
+	</bean>
+
+	<bean id="authenticationManager" class="org.springframework.security.providers.ProviderManager">
+		<property name="providers">
+			<list>
+				<ref bean="daoAuthenticationProvider" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="channelProcessingFilter" class="org.springframework.security.securechannel.ChannelProcessingFilter">
+		<property name="filterInvocationDefinitionSource">
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/login.htm=REQUIRES_SECURE_CHANNEL
+				/j_acegi_security_check*=REQUIRES_SECURE_CHANNEL
+				/**=REQUIRES_SECURE_CHANNEL
+			</value>
+		</property>
+		<property name="channelDecisionManager"	ref="channelDecisionManager" />
+	</bean>
+
+	<bean id="channelDecisionManager" class="org.springframework.security.securechannel.ChannelDecisionManagerImpl">
+		<property name="channelProcessors">
+			<list>
+				<bean class="org.springframework.security.securechannel.SecureChannelProcessor"/>
+				<bean class="org.springframework.security.securechannel.InsecureChannelProcessor"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="daoAuthenticationProvider" class="org.springframework.security.providers.dao.DaoAuthenticationProvider">
+		<property name="userDetailsService" ref="authenticationDao" />
+		<property name="passwordEncoder">
+			<bean class="org.springframework.security.providers.encoding.Md5PasswordEncoder" />
+		</property>
+		<property name="saltSource">
+			<bean class="org.springframework.security.providers.dao.salt.SystemWideSaltSource">
+				<property name="systemWideSalt" value="WebFTP123$" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="authenticationDao" class="org.springframework.security.userdetails.jdbc.JdbcDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+		<property name="usersByUsernameQuery">
+			<value>
+				SELECT
+				login AS username,
+				password,
+				validfrom &lt;= NOW() AND (validto is null or validto &gt;= NOW()) AS enabled
+				FROM Users
+				WHERE login = ?
+			</value>
+		</property>
+		<property name="authoritiesByUsernameQuery">
+			<value>
+				SELECT login as username, 'ROLE_USER' as authority
+				FROM users
+				WHERE login = ?
+			</value>
+		</property>
+	</bean>
+
+	<bean id="accessDeniedHandler" class="org.springframework.security.ui.AccessDeniedHandlerImpl">
+		<property name="errorPage" value="/error.htm" />
+	</bean>
+
+	<bean id="exceptionTranslationFilter" class="org.springframework.security.ui.ExceptionTranslationFilter">
+		<property name="authenticationEntryPoint" ref="authenticationEntryPoint" />
+		<property name="accessDeniedHandler" ref="accessDeniedHandler" />
+	</bean>
+
+	<bean id="accessDecisionManager" class="org.springframework.security.vote.UnanimousBased">
+		<property name="decisionVoters">
+			<list>
+				<ref bean="roleVoter"/>
+			</list>
+		</property><!-- 
+		<property name="allowIfAllAbstain" value="true" /> -->
+	</bean>
+	
+	<bean id="roleVoter" class="org.springframework.security.vote.RoleVoter">
+		<property name="rolePrefix" value="ROLE_" />
+	</bean>
+
+	<bean id="filterSecurityInterceptor" class="org.springframework.security.intercept.web.FilterSecurityInterceptor">
+		<property name="authenticationManager" ref="authenticationManager" />
+		<property name="accessDecisionManager" ref="accessDecisionManager" />
+		<property name="objectDefinitionSource">
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/edituser.htm=ROLE_ADMIN
+				/editcompany.htm=ROLE_ADMIN
+				/editoverview.htm=ROLE_ADMIN
+				/**=ROLE_USER
+			</value>
+		</property>
+	</bean>
+</beans>
