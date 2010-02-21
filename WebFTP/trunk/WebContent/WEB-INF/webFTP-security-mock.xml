@@ -98,11 +98,12 @@
 				/edituser.htm=ROLE_ADMIN
 				/editcompany.htm=ROLE_ADMIN
 				/editoverview.htm=ROLE_ADMIN
-				/login.htm=ROLE_ANONYMOUS,ROLE_USER
-				/error.htm=ROLE_ANONYMOUS,ROLE_USER
-				/static/**=ROLE_ANONYMOUS,ROLE_USER
-				/listfiles.*=ROLE_USER
 				<!-- 
+				/login.*=ROLE_ANONYMOUS,ROLE_USER,ROLE_ADMIN
+				/logout.*=ROLE_ANONYMOUS,ROLE_USER,ROLE_ADMIN
+				/error.htm=ROLE_ANONYMOUS,ROLE_USER,ROLE_ADMIN
+				/static/**=ROLE_ANONYMOUS,ROLE_USER,ROLE_ADMIN
+				/listfiles.*=ROLE_USER,ROLE_ADMIN
 				/**=ROLE_USER
 				 -->
 			</value>
